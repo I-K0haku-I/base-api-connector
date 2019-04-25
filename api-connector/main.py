@@ -17,6 +17,28 @@ class AsDictObject:
 
 
 class GenericAPIConnector:
+
+    def __new__(cls):
+        for resource, settings in cls.resource_config.items():
+            for setting, content in settings.items():
+                # TODO: rename methods to something else so it's distinct to get etc.
+                if setting == 'methods':
+                    for method in content:
+                        print(f'{resource}_{method}')
+                        # TODO: why are the created attributes all the same function??? They all return the latest resource+method
+                        setattr(cls, f'{resource}_{method}', lambda self, *a, **kw: self.create_attr(resource, method, *a, **kw))
+        return object.__new__(cls)
+    
+    singular_methods = ('retrieve', 'update', 'destroy')
+
+    def create_attr(self, resource, method, *args, **kwargs):
+        print(resource)
+        url = f'{self.base_api_url}{resource}/'
+        if method in self.singular_methods:
+            pk = args[0]
+            url += str(pk)
+        print(url)
+
     @property
     def base_api_url(self):
         raise NotImplementedError()
@@ -44,10 +66,10 @@ class ImplementedAPIConnector(GenericAPIConnector):
             # 'subresources': ('posboxes') or define it anew, but not going to implement this for now
         },
         'postboxes': {
-            'methods': ('create',)
+            'methods': ('retrieve',)
         }
     }
 
 
-test = ImplementedAPIConnector()
-print(test.base_api_url)
+conn = ImplementedAPIConnector()
+conn.users_retrieve(1)
