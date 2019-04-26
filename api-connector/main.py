@@ -17,27 +17,49 @@ class AsDictObject:
 
 
 class GenericAPIConnector:
-
     def __new__(cls):
         for resource, settings in cls.resource_config.items():
             for setting, content in settings.items():
-                # TODO: rename methods to something else so it's distinct to get etc.
-                if setting == 'methods':
-                    for method in content:
-                        print(f'{resource}_{method}')
-                        # TODO: why are the created attributes all the same function??? They all return the latest resource+method
-                        setattr(cls, f'{resource}_{method}', lambda self, *a, **kw: self.create_attr(resource, method, *a, **kw))
+                if setting == 'commands':
+                    for command in content: # TODO: maybe make multiple lambdas depending on command or some magic stuff
+                        setattr(cls, f'{resource}_{command}', lambda self, *a, resource=resource, command=command, **kw: self.create_attr(resource, command, *a, **kw))
+                # if setting == 'data':
+        
+        cls.commands_to_methods = dict(zip(cls.possible_commands, cls.corresponding_methods))
+
+
         return object.__new__(cls)
     
-    singular_methods = ('retrieve', 'update', 'destroy')
+    possible_commands = ('list', 'create', 'retrieve', 'update', 'destroy')
+    corresponding_methods = ('get', 'post', 'get', 'patch', 'delete')       
 
-    def create_attr(self, resource, method, *args, **kwargs):
-        print(resource)
+    singular_commands = ('retrieve', 'update', 'destroy')
+    data_commands = ('create', 'update')
+
+
+    def create_attr(self, resource, command, *args, **kwargs):
         url = f'{self.base_api_url}{resource}/'
-        if method in self.singular_methods:
-            pk = args[0]
+        args_offset = 0
+        # TODO: maybe add validation for parameter depending on command like create needs only one
+        data = None
+        if command in self.singular_commands: # TODO: this is super dangerous, maybe user kwargs...
+            pk = args[args_offset]
+            args_offset += 1
             url += str(pk)
+        if command in self.data_commands:
+            data = args[args_offset]
+            args_offset += 1
         print(url)
+        # TODO: reaplace None with proper stuff
+        request_kwargs = {
+            'params': None,
+            'data': data,
+            'headers': None,
+            'auth': None,
+            'cookies': None
+        }
+        r = requests.request(self.commands_to_methods[command], url, **request_kwargs)
+        return r
 
     @property
     def base_api_url(self):
@@ -55,21 +77,20 @@ class UserObject(AsDictObject):
     name = 'test'
 
 class ImplementedAPIConnector(GenericAPIConnector):
-
     base_api_url = 'http://127.0.0.1:8000/'
     resource_config = {
         'users': {
-            'methods': ('create', 'retrieve', 'update', 'destroy', 'list'),
-            'data_obj': {
+            'commands': ('create', 'retrieve', 'update', 'destroy', 'list'),
+            'data': {
                 'name': {'required': True}
             }
             # 'subresources': ('posboxes') or define it anew, but not going to implement this for now
         },
         'postboxes': {
-            'methods': ('retrieve',)
+            'commands': ('retrieve',)
         }
     }
 
 
 conn = ImplementedAPIConnector()
-conn.users_retrieve(1)
+print(conn.users_list())
