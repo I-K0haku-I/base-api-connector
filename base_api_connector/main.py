@@ -19,7 +19,7 @@ class AsDictObject:
 POSSIBLE_COMMANDS = ('list', 'create', 'retrieve', 'update', 'destroy')
 
 
-class CommandMethodHolder:
+class CommandMethodHolder: # TODO: upgrade Response object r with helpful stuff like accessing the id when using create
     def list(self):
         def list(**kwargs):
             url = self.get_full_url()
@@ -132,6 +132,6 @@ class ImplementedAPIConnector(GenericAPIConnector):
     }
 
 
-conn = ImplementedAPIConnector()
-print(conn.notes.list())
-print(dir(CommandMethodHolder))
+# conn = ImplementedAPIConnector()
+# print(conn.notes.list())
+# print(dir(CommandMethodHolder))
