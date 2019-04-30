@@ -12,7 +12,11 @@ class AsDictObject:
                     value = value.as_dict()
                 elif isinstance(value, list):
                     value = [i.as_dict() if isinstance(i, AsDictObject) else i for i in value]
-                dict_repr[name] = value
+
+                if callable(value):
+                    dict_repr[name] = value()
+                else:
+                    dict_repr[name] = value
         return dict_repr
 
 
@@ -20,7 +24,7 @@ POSSIBLE_COMMANDS = ('list', 'create', 'retrieve', 'update', 'destroy')
 
 
 class CommandMethodHolder: # TODO: upgrade Response object r with helpful stuff like accessing the id when using create
-    def list(self):
+    def list(self): # TODO: also, do I want validation for data?
         def list(**kwargs):
             url = self.get_full_url()
             r = requests.get(url, **kwargs)
@@ -77,6 +81,9 @@ class APIResource:
     def get_full_url(self, pk=''):
         return f'{self.API.base_api_url}{self.name}/{pk}'
 
+    def get_headers(self):
+        pass # TODO: implement defaults for headers and anything else you can think of
+
 
 class GenericAPIConnector:
     def __new__(cls):
@@ -106,10 +113,7 @@ class ImplementedAPIConnector(GenericAPIConnector):
     resource_config = {
         'users': {
             'commands': ('create', 'retrieve', 'update', 'destroy', 'list'),
-            'data': {
-                'name': {'required': True}
-            },
-            'params': {
+            'params': { # TODO: I do want to define params here
                 'filter_option': {} # maybe in a list
             }
             # 'subresources': ('posboxes') or define it anew, but not going to implement this for now
@@ -122,9 +126,6 @@ class ImplementedAPIConnector(GenericAPIConnector):
         },
         'tags': {
             'commands': ('create', 'retrieve', 'update', 'destroy', 'list'),
-            'data': {
-                'name': {'required': True}
-            }
         },
         'types': {
             'commands': ('create', 'retrieve', 'update', 'destroy', 'list'),
