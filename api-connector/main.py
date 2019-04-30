@@ -16,55 +16,74 @@ class AsDictObject:
         return dict_repr
 
 
+POSSIBLE_COMMANDS = ('list', 'create', 'retrieve', 'update', 'destroy')
+
+
+class CommandMethodHolder:
+    def list(self):
+        def list(**kwargs):
+            url = self.get_full_url()
+            r = requests.get(url, **kwargs)
+            return r
+        return list
+
+    def create(self):
+        def create(data, **kwargs):
+            if isinstance(data, AsDictObject):
+                data = data.as_dict()
+            url = self.get_full_url()
+            r = requests.post(url, data, **kwargs)
+            return r
+        return create
+
+    def retrieve(self):
+        def retrieve(pk, **kwargs):
+            url = self.get_full_url(pk)
+            r = requests.get(url, **kwargs)
+            return r
+        return retrieve
+
+    def update(self):
+        def update(pk, data, **kwargs):
+            if isinstance(data, AsDictObject):
+                data = data.as_dict()
+            url = self.get_full_url(pk)
+            r = requests.patch(url, data, **kwargs)
+            return r
+        return update
+
+    def delete(self):
+        def delete(pk, **kwargs):
+            url = self.get_full_url(pk)
+            r = requests.delete(url, **kwargs)
+            return r
+        return delete
+
+class APIResource:
+    def __init__(self, Connector, resource, settings=None, *args, **kwargs):
+        self.name = resource
+        self.Connector = Connector
+
+        for setting, content in settings.items():
+            if setting == 'commands':
+                if content == 'all':
+                    content = POSSIBLE_COMMANDS
+                for command in content:
+                    if hasattr(CommandMethodHolder, command):
+                        setattr(self, command, getattr(CommandMethodHolder, command)(self))
+
+        # return super().__init__(*args, **kwargs) # TODO: do I need this look it up
+
+    def get_full_url(self, pk=''):
+        return f'{self.Connector.base_api_url}{self.name}/{pk}'
+
+
 class GenericAPIConnector:
     def __new__(cls):
         for resource, settings in cls.resource_config.items():
-            for setting, content in settings.items():
-                if setting == 'commands':
-                    if content == 'all':
-                        content = cls.possible_commands
-                    for command in content:  # TODO: maybe make multiple lambdas depending on command or some magic stuff
-                        setattr(cls, f'{resource}_{command}', lambda self, *a, resource=resource,
-                                command=command, **kw: self.create_attr(resource, command, *a, **kw))
-                # if setting == 'data':
-
-        cls.commands_to_methods = dict(zip(cls.possible_commands, cls.corresponding_methods))
+            setattr(cls, resource, APIResource(cls, resource, settings))
 
         return object.__new__(cls)
-
-    possible_commands = ('list', 'create', 'retrieve', 'update', 'destroy')
-    corresponding_methods = ('get', 'post', 'get', 'patch', 'delete')
-
-    singular_commands = ('retrieve', 'update', 'destroy')
-    data_commands = ('create', 'update')
-
-    def create_attr(self, resource, command, *args, **kwargs):
-        url = f'{self.base_api_url}{resource}/'
-        args_offset = 0
-        # TODO: maybe add validation for parameter depending on command like create needs only one
-        data = None
-        # TODO: this is super dangerous, maybe use kwargs...
-        if command in self.singular_commands:
-            pk = args[args_offset]
-            args_offset += 1
-            url += str(pk)
-        if command in self.data_commands:
-            data = args[args_offset]
-            args_offset += 1
-        print(self.commands_to_methods[command], url)
-        # TODO: reaplace None with proper stuff
-        request_kwargs = {
-            'params': None,
-            'data': data,
-            'headers': None,
-            'auth': None,
-            'cookies': None
-        }
-        r = requests.request(self.commands_to_methods[command], url, **request_kwargs)
-        # TODO: decide what to return, preferably only what you would actually use, idk how though
-        if r.ok:
-            return r.json()
-        return r
 
     base_data = {}
     base_header = {}
@@ -89,6 +108,9 @@ class ImplementedAPIConnector(GenericAPIConnector):
             'commands': ('create', 'retrieve', 'update', 'destroy', 'list'),
             'data': {
                 'name': {'required': True}
+            },
+            'params': {
+                'filter_option': {} # maybe in a list
             }
             # 'subresources': ('posboxes') or define it anew, but not going to implement this for now
         },
@@ -111,4 +133,5 @@ class ImplementedAPIConnector(GenericAPIConnector):
 
 
 conn = ImplementedAPIConnector()
-print(conn.notes_create({}))
+print(conn.notes.list())
+print(dir(CommandMethodHolder))
