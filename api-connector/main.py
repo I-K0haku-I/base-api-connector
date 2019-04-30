@@ -62,7 +62,7 @@ class CommandMethodHolder:
 class APIResource:
     def __init__(self, Connector, resource, settings=None, *args, **kwargs):
         self.name = resource
-        self.Connector = Connector
+        self.API = Connector
 
         for setting, content in settings.items():
             if setting == 'commands':
@@ -75,7 +75,7 @@ class APIResource:
         # return super().__init__(*args, **kwargs) # TODO: do I need this look it up
 
     def get_full_url(self, pk=''):
-        return f'{self.Connector.base_api_url}{self.name}/{pk}'
+        return f'{self.API.base_api_url}{self.name}/{pk}'
 
 
 class GenericAPIConnector:
