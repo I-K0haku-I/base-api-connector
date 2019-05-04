@@ -91,7 +91,7 @@ class GenericAPIConnector:
             setattr(cls, resource, APIResource(cls, resource, settings))
 
         return object.__new__(cls)
-
+# TODO: maybe add init where you can put the config and stuff in without having to create a new class
     base_data = {}
     base_header = {}
 
