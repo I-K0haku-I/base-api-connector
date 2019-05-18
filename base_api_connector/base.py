@@ -73,10 +73,11 @@ class APIResource:
         if commands == 'all':
             commands = POSSIBLE_COMMANDS
         for command in commands:
-            setattr(self, command, getattr(CommandMethodHolder, command)(self)) 
+            setattr(self, command, getattr(CommandMethodHolder, command)(self))
 
     def get_full_url(self, pk=''):
         return f'{self.api.base_api_url}{self.name}/{pk}'
+
 
 class GenericAPIConnector:
     def __new__(cls):
@@ -94,7 +95,6 @@ class GenericAPIConnector:
     @property
     def base_api_url(self):
         raise NotImplementedError
-
 
 
 class AsDictObject:
