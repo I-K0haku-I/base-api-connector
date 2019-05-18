@@ -1,1 +1,1 @@
-from .main import AsDictObject, GenericAPIConnector
+from .base import GenericAPIConnector, AsDictObject, APIResource

@@ -1,4 +1,4 @@
-from .main import GenericAPIConnector, AsDictObject
+from base import GenericAPIConnector, AsDictObject, CommandMethodHolder, APIResource
 
 
 class UserObject(AsDictObject):
@@ -7,29 +7,17 @@ class UserObject(AsDictObject):
 
 class ImplementedAPIConnector(GenericAPIConnector):
     base_api_url = 'http://127.0.0.1:8000/notes-backend/'
-    resource_config = {
-        'users': {
-            'commands': ('create', 'retrieve', 'update', 'destroy', 'list'),
-            'params': {  # TODO: I do want to define params here
-                'filter_option': {}  # maybe in a list
-            }
-            # 'subresources': ('posboxes') or define it anew, but not going to implement this for now
-        },
-        'postboxes': {
-            'commands': ('retrieve',)
-        },
-        'notes': {
-            'commands': 'all',
-        },
-        'tags': {
-            'commands': ('create', 'retrieve', 'update', 'destroy', 'list'),
-        },
-        'types': {
-            'commands': ('create', 'retrieve', 'update', 'destroy', 'list'),
-        }
-    }
+    users = APIResource(('create', 'retrieve', 'update', 'destroy', 'list'))
+    postboxes = APIResource(('retrieve',))
+    notes = APIResource('all')
+    tags = APIResource(('create', 'retrieve', 'update', 'destroy', 'list'))
+    types = APIResource(('create', 'retrieve', 'update', 'destroy', 'list'))
 
 
-# conn = ImplementedAPIConnector()
+conn = ImplementedAPIConnector()
 # print(conn.notes.list())
-# print(dir(CommandMethodHolder))
+print(dir(CommandMethodHolder))
+conn.users.list()
+if __name__ == "__main__":
+    pass
+

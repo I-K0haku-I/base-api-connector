@@ -1,6 +1,6 @@
 # Base API Connector
 
-Helps create a simple API Connector where all you have to do is define the resources and possible commands in a config.
+Helps create a simple API Connector where all you have to do is define the resources and possible commands.
 
 ## Instructions
 
@@ -12,20 +12,13 @@ First import the GenericAPIConnector class:
 from base_api_connector import GenericAPIConnector
 ```
 
-Then, define a base_api_url and a resource_config like this:
+Then, define a base_api_url and resource fields like this:
 
 ```
 class ImplementedAPIConnector(GenericAPIConnector):
-    base_api_url = 'http://127.0.0.1:8000/api/'
-    resource_config = {
-        'reports': {
-            'commands': ('create', 'retrieve', 'update')
-        }
-        'users': {
-            'commands': 'all'
-        },
-        ...
-    }
+    base_api_url = 'http://127.0.0.1:8000/notes-backend/'
+    reports = APIResource(('create', 'retrieve', 'update'))
+    users = APIResource('all')
 ```
 This will generate the following attributes when you use this class:
 
@@ -42,8 +35,6 @@ conn.users.retrieve(pk)
 conn.users.update(pk, data)
 conn.users.delete(pk)
 ```
-
-They accept dict for data like the normal requests module and AsDictObject found in this package.
 
 ### Using The Returned Object
 

@@ -5,6 +5,7 @@ import inspect
 POSSIBLE_COMMANDS = ('list', 'create', 'retrieve', 'update', 'destroy')
 
 
+# TODO: not sure if I like this concept...
 class CommandMethodHolder:  # TODO: upgrade Response object r with helpful stuff like accessing the id when using create
     def get_full_url(self, pk=None):
         raise NotImplementedError
@@ -41,53 +42,59 @@ class CommandMethodHolder:  # TODO: upgrade Response object r with helpful stuff
             return r
         return update
 
-    def delete(self):
-        def delete(pk, **kwargs):
+    def destroy(self):
+        def destroy(pk, **kwargs):
             url = self.get_full_url(pk)
             r = requests.delete(url, **kwargs)
             return r
-        return delete
+        return destroy
 
 
 class APIResource:
-    def __init__(self, Connector, resource, settings=None, *args, **kwargs):
-        self.name = resource
-        self.API = Connector
+    api = type('EmptyAPIConnector', (), {'base_api_url': '/'})
+    name = ''
 
-        for setting, content in settings.items():
-            if setting == 'commands':
-                if content == 'all':
-                    content = POSSIBLE_COMMANDS
-                for command in content:
-                    if hasattr(CommandMethodHolder, command):
-                        setattr(self, command, getattr(CommandMethodHolder, command)(self))
+    def list(self, **kwargs):
+        raise NotImplementedError
 
-        # return super().__init__(*args, **kwargs) # TODO: do I need this look it up
+    def create(self, data, **kwargs):
+        raise NotImplementedError
+
+    def retrieve(self, pk, **kwargs):
+        raise NotImplementedError
+
+    def update(self, pk, data, **kwargs):
+        raise NotImplementedError
+
+    def destroy(self, pk, **kwargs):
+        raise NotImplementedError
+
+    def __init__(self, commands, *args, **kwargs):
+        if commands == 'all':
+            commands = POSSIBLE_COMMANDS
+        for command in commands:
+            setattr(self, command, getattr(CommandMethodHolder, command)(self)) 
 
     def get_full_url(self, pk=''):
-        return f'{self.API.base_api_url}{self.name}/{pk}'
-
-    def get_headers(self):
-        pass  # TODO: implement defaults for headers and anything else you can think of
-
+        return f'{self.api.base_api_url}{self.name}/{pk}'
 
 class GenericAPIConnector:
     def __new__(cls):
-        for resource, settings in cls.resource_config.items():
-            setattr(cls, resource, APIResource(cls, resource, settings))
-
+        for name in dir(cls):
+            attr = getattr(cls, name)
+            if isinstance(attr, APIResource):
+                attr.api = cls
+                attr.name = name
         return object.__new__(cls)
-# TODO: maybe add init where you can put the config and stuff in without having to create a new class
-    base_data = {}
-    base_header = {}
+
+    base_data = {}  # add base data
+    base_headers = {}  # add base headers
+    resource_config = None
 
     @property
     def base_api_url(self):
-        raise NotImplementedError()
+        raise NotImplementedError
 
-    @property
-    def resource_config(self):
-        raise NotImplementedError()
 
 
 class AsDictObject:
@@ -106,3 +113,6 @@ class AsDictObject:
                 else:
                     dict_repr[name] = value
         return dict_repr
+
+
+# TODO: make a program that can go through django and generate code for a connector taht you can copy paste into where you use it
