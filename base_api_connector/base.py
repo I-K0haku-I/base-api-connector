@@ -49,8 +49,9 @@ class CommandMethodHolder:  # TODO: upgrade Response object r with helpful stuff
             return r
         return destroy
 
-
-class APIResource:
+# TODO: right now all methods appear no matter which commands you pass, I don't want that
+# maybe make it so you have to create a class, pass in mixins and instantiate it immediately?
+class APIResource: 
     api = type('EmptyAPIConnector', (), {'base_api_url': '/'})
     name = ''
 
