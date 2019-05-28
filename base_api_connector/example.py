@@ -1,4 +1,4 @@
-from base import GenericAPIConnector, AsDictObject, CommandMethodHolder, APIResource
+from .base import GenericAPIConnector, AsDictObject, CommandMethodHolder, APIResource
 
 
 class UserObject(AsDictObject):
