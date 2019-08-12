@@ -18,7 +18,7 @@ class CommandMethodHolder:  # TODO: upgrade Response object r with helpful stuff
         return list
 
     def create(self):
-        def create(data, **kwargs):
+        def create(data=None, **kwargs):
             if isinstance(data, AsDictObject):
                 data = data.as_dict()
             url = self.get_full_url()
@@ -34,7 +34,7 @@ class CommandMethodHolder:  # TODO: upgrade Response object r with helpful stuff
         return retrieve
 
     def update(self):
-        def update(pk, data, **kwargs):
+        def update(pk, data=None, **kwargs):
             if isinstance(data, AsDictObject):
                 data = data.as_dict()
             url = self.get_full_url(pk)
@@ -77,7 +77,7 @@ class APIResource:
             setattr(self, command, getattr(CommandMethodHolder, command)(self))
 
     def get_full_url(self, pk=''):
-        return f'{self.api.base_api_url}{self.name}/{pk}'
+        return f'{self.api.base_api_url}{self.name}/' + (f'{pk}/' if pk else '')
 
 
 class GenericAPIConnector:
