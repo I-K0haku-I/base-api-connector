@@ -4,7 +4,7 @@ Helps create a simple API Connector where all you have to do is define the resou
 
 ## Instructions
 
-### Using GenericAPIConnector
+### Using the Module
 
 First import the GenericAPIConnector class:
 
@@ -20,7 +20,7 @@ class ImplementedAPIConnector(GenericAPIConnector):
     reports = APIResource(('create', 'retrieve', 'update'))
     users = APIResource('all')
 ```
-This will generate the following attributes when you use this class:
+That will generate the following attributes when you use the class:
 
 ```
 conn = ImplementedAPIConnector()
@@ -34,6 +34,32 @@ conn.users.create(data)
 conn.users.retrieve(pk)
 conn.users.update(pk, data)
 conn.users.delete(pk)
+```
+
+### Asyncio
+
+You can tell tell your resource fields that they should be accessed with asyncio per default:
+```
+class ImplementedAPIConnector(GenericAPIConnector):
+    # ...
+    users = APIResource('all', is_async=True)
+```
+and then use it in an async metho as follows:
+```
+async def create_user(user):
+    r = await conn.user.create(user)
+    data = await r.json()
+    # ...
+```
+Alternatively, you can change switch to async in-line as well:
+```
+    # ...
+    r = await conn.reports(is_async=True).list()
+    # ...
+```
+or the other way around:
+```
+r = conn.user(is_async=False).list()
 ```
 
 ### Using The Returned Object

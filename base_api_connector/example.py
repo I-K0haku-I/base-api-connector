@@ -1,5 +1,4 @@
-from .base import GenericAPIConnector, AsDictObject, CommandMethodHolder, APIResource
-
+from .base import GenericAPIConnector, AsDictObject, CommandsMethodHolder, APIResource
 
 class UserObject(AsDictObject):
     name = 'test'
@@ -16,7 +15,16 @@ class ImplementedAPIConnector(GenericAPIConnector):
 
 conn = ImplementedAPIConnector()
 # print(conn.notes.list())
-print(dir(CommandMethodHolder))
-conn.users.list()
+print(dir(CommandsMethodHolder))
+# conn.users.list()
+print(conn.notes.list().json())
+async def test():
+    r = await conn.notes(is_async=True).list()
+    data = await r.json()
+    print(data)
+import asyncio
+asyncio.run(test())
+
+
 if __name__ == "__main__":
     pass

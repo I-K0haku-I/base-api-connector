@@ -9,7 +9,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='base-api-connector',
-    version='0.1.5.2',
+    version='0.2',
     description='Generic Connector so you can easily create simple and readable classes for accessing APIs.',
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -17,5 +17,5 @@ setup(
     author='Andreas Schäfer',
     author_email=None,
     packages=find_packages(),
-    install_requires=['requests']
+    install_requires=['requests', 'aiohttp']
 )
