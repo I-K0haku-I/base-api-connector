@@ -197,12 +197,14 @@ def check_request_args(command, args):
         raise TypeError(f'{command}() takes {len(COMMAND_TO_ARGS[command])} positional arguments but {len(args)} was given')
 
 
-def _validate_request(inst, command, args, kwargs):
+def _validate_request(inst, command, args, load_mode, kwargs):
+    if command in ('create', 'update'):
+        kwargs['load_mode'] = load_mode
+
     check_request_args(command, args)
     for i, key in enumerate(COMMAND_TO_ARGS[command]):
         if key == 'load':
             key = kwargs.pop('load_mode')
-            print(key)
         kwargs[key] = args[i]
 
     if isinstance(kwargs.get('json'), AsDictObject):
@@ -223,10 +225,7 @@ def _validate_request(inst, command, args, kwargs):
 def _generate_requests_method(inst: APIResource, command):
     @functools.wraps(getattr(inst, command))
     def _(*args, load_mode='json', **kwargs):
-        if command in ('create', 'update'):
-            kwargs['load_mode'] = load_mode
-        kwargs = _validate_request(inst, command, args, kwargs)
-        print(kwargs)
+        kwargs = _validate_request(inst, command, args, load_mode, kwargs)
         r = getattr(requests, COMMAND_TO_METHOD[command])(**kwargs)
         return r
     return _
@@ -234,8 +233,8 @@ def _generate_requests_method(inst: APIResource, command):
 
 def _generate_async_method(inst: APIResource, command):
     @functools.wraps(getattr(inst, command))
-    async def _(*args, **kwargs):
-        kwargs = _validate_request(inst, command, args, kwargs)
+    async def _(*args, load_mode='json', **kwargs):
+        kwargs = _validate_request(inst, command, args, load_mode, kwargs)
         async with aiohttp.ClientSession() as session:
             r = await getattr(session, COMMAND_TO_METHOD[command])(**kwargs)
             return r

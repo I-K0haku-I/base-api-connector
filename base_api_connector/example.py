@@ -15,7 +15,7 @@ class UserObject(AsDictObject):
 class TestAPIConnector(GenericAPIConnector):
     base_headers = {'cool-token': 'yourpasswordhere'}
     base_api_url = 'http://127.0.0.1:8000/notes-backend/'
-    notes = APIResource(('list', 'create', 'retrieve', 'update', 'destroy'), test=True)
+    notes = APIResource(('list', 'create', 'retrieve', 'update', 'destroy'))
 
 conn = TestAPIConnector()
 # print(conn.notes.list())
